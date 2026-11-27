@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Veterinaria · Panel JWT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap">
+<style>
+  /* Tokens del estilo "morado profundo + coral" (guía UI/UX de Lab11) */
+  :root{
+    --morado:#5b1fd0;--morado-oscuro:#3a0f8f;--morado-tinta:#1d0a45;--lila:#f3edff;--lila-2:#e6dbff;
+    --coral:#ff5a6b;--verde:#0f9d68;--ambar:#e8920c;--rojo:#c4213a;
+    --texto:#1b1530;--suave:#6b6482;--borde:#e9e4f5;--fondo:#faf8ff;--blanco:#fff;
+    --topbar-bg:rgba(255,255,255,.96);--radio:20px;
+    --sombra:0 1px 2px rgba(29,10,69,.06),0 8px 24px rgba(29,10,69,.08);
+    --sombra-alta:0 2px 4px rgba(29,10,69,.1),0 18px 40px rgba(91,31,208,.28);
+  }
+  :root[data-tema="oscuro"]{
+    color-scheme:dark;--fondo:#0f0c1d;--blanco:#1a1630;--texto:#f1edff;--suave:#a9a2c7;--borde:#2d2750;
+    --lila:#241e45;--lila-2:#352c68;--morado:#8b5cf6;--morado-oscuro:#7c3aed;--coral:#ff6b7c;
+    --topbar-bg:rgba(15,12,29,.95);
+    --sombra:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+    --sombra-alta:0 2px 4px rgba(0,0,0,.4),0 18px 40px rgba(124,77,255,.3);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fondo);color:var(--texto);font:15px/1.55 'Sora','Inter',system-ui,-apple-system,'Segoe UI',sans-serif;transition:background .25s,color .25s}
+  a{color:var(--morado);font-weight:700;text-decoration:none}
+  :focus-visible{outline:3px solid var(--coral);outline-offset:2px;border-radius:10px}
+
+  /* Barra superior */
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:12px max(16px,calc((100% - 1120px)/2));background:var(--topbar-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--borde)}
+  .marca{font-weight:800;font-size:1.1rem;display:flex;align-items:center;gap:8px;margin-right:auto}
+  .marca i{font-style:normal;display:grid;place-items:center;width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,var(--morado),var(--coral));color:#fff}
+  .icono{border:1px solid var(--borde);background:var(--blanco);color:var(--texto);width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1.05rem;transition:transform .12s,background .15s}
+  .icono:hover{background:var(--lila)}.icono:active{transform:scale(.92)}
+
+  main{max-width:1120px;margin:24px auto 60px;padding:0 16px}
+
+  /* Hero */
+  .hero{position:relative;overflow:hidden;color:#fff;border-radius:28px;padding:36px 34px;margin-bottom:24px;background:linear-gradient(135deg,#3a0f8f 0%,#5b1fd0 55%,#8a3ffc 100%);box-shadow:var(--sombra-alta)}
+  .hero::after{content:"";position:absolute;right:-60px;top:-80px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(255,90,107,.7),transparent 65%)}
+  .hero h1{margin:0;font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:800;position:relative;z-index:1}
+  .hero p{margin:10px 0 0;max-width:520px;opacity:.88;position:relative;z-index:1}
+  .hero .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;position:relative;z-index:1}
+  .hero .chips span{background:rgba(255,255,255,.16);padding:5px 14px;border-radius:999px;font-size:.82rem;font-weight:600}
+
+  .rejilla{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:20px;align-items:start}
+  @media(max-width:860px){.rejilla{grid-template-columns:1fr}.hero{padding:26px 22px}}
+
+  .panel{background:var(--blanco);border:1px solid var(--borde);border-radius:var(--radio);padding:22px;box-shadow:var(--sombra);margin-bottom:20px;animation:entra .45s both}
+  @keyframes entra{from{opacity:0;transform:translateY(10px)}}
+  .panel h2{font-size:1.05rem;font-weight:800;margin:0 0 14px}
+  .nota{color:var(--suave);font-size:.86rem;margin:-6px 0 14px}
+
+  /* Selector segmentado de rol */
+  .seg{position:relative;display:grid;grid-template-columns:repeat(3,1fr);background:var(--lila);border-radius:999px;padding:4px;margin-bottom:16px}
+  .seg button{position:relative;z-index:1;border:0;background:transparent;color:var(--suave);font:inherit;font-weight:700;font-size:.8rem;padding:9px 4px;border-radius:999px;cursor:pointer;transition:color .2s}
+  .seg button[aria-pressed="true"]{color:#fff}
+  .seg .pastilla{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);border-radius:999px;background:var(--morado);transition:transform .3s cubic-bezier(.3,1.2,.4,1);z-index:0;box-shadow:0 4px 12px rgba(91,31,208,.4)}
+
+  label{display:block;font-size:.76rem;font-weight:700;color:var(--suave);margin:12px 0 5px}
+  input{width:100%;padding:12px 16px;border:1.5px solid var(--borde);border-radius:14px;background:var(--fondo);color:var(--texto);font:inherit;transition:border-color .15s,box-shadow .15s}
+  input:focus{outline:0;border-color:var(--morado);box-shadow:0 0 0 4px var(--lila-2)}
+
+  /* Botones píldora + ripple */
+  .btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border:0;border-radius:999px;font:inherit;font-weight:700;font-size:.92rem;cursor:pointer;transition:transform .12s,box-shadow .15s,background .15s}
+  .btn:active{transform:scale(.97)}
+  .btn--primario{background:var(--morado);color:#fff}.btn--primario:hover{background:var(--morado-oscuro);box-shadow:var(--sombra-alta)}
+  .btn--suave{background:var(--lila);color:var(--morado)}.btn--suave:hover{background:var(--lila-2)}
+  .btn--chico{padding:7px 16px;font-size:.8rem}
+  .btn[disabled]{opacity:.6;cursor:progress}
+  .onda{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);transform:scale(0);animation:onda .6s ease-out forwards;pointer-events:none}
+  .btn--suave .onda{background:rgba(91,31,208,.2)}
+  @keyframes onda{to{transform:scale(4);opacity:0}}
+  .fila{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+
+  /* Sesión */
+  .yo{display:flex;align-items:center;gap:12px}
+  .avatar{width:44px;height:44px;flex:none;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--morado),var(--coral))}
+  .yo b{display:block;word-break:break-all}
+  .rol{display:inline-block;margin-top:2px;padding:2px 12px;border-radius:999px;background:var(--lila);color:var(--morado);font-size:.76rem;font-weight:800}
+  .anon .avatar{background:var(--lila-2);color:var(--suave)}
+  pre{font:12px/1.5 ui-monospace,Consolas,monospace;background:var(--fondo);border:1px solid var(--borde);border-radius:14px;padding:12px;overflow:auto;max-height:240px;margin:14px 0 0;white-space:pre-wrap;word-break:break-all}
+  .exp{color:var(--suave);font-size:.78rem;margin-top:8px}
+
+  /* Matriz */
+  .grupo{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);margin:18px 0 8px}
+  .grupo:first-of-type{margin-top:0}
+  .item{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--borde);border-radius:16px;margin-bottom:8px;background:var(--fondo);transition:transform .15s,box-shadow .15s,border-color .15s}
+  .item:hover{transform:translateY(-2px);box-shadow:var(--sombra);border-color:var(--lila-2)}
+  .ruta{font:700 .82rem ui-monospace,Consolas,monospace;word-break:break-all}
+  .acceso{display:block;font-size:.76rem;color:var(--suave);font-weight:600;margin-top:1px}
+  .metodo{display:inline-block;min-width:58px;text-align:center;font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:8px;margin-right:6px;color:#fff}
+  .m-GET{background:var(--verde)}.m-POST{background:var(--morado)}.m-PUT{background:var(--ambar)}.m-DELETE{background:var(--rojo)}
+  .cod{min-width:56px;text-align:center;padding:4px 10px;border-radius:999px;font-weight:800;font-size:.82rem;background:var(--lila);color:var(--suave)}
+  .cod.s2{background:#e3f7ee;color:#0b8f5c}.cod.s4{background:#fff1d6;color:#b45309}.cod.s5{background:#ffe8eb;color:#c4213a}
+  :root[data-tema="oscuro"] .cod.s2{background:#0f332f;color:#2dd4bf}
+  :root[data-tema="oscuro"] .cod.s4{background:#3a2810;color:#fbbf24}
+  :root[data-tema="oscuro"] .cod.s5{background:#3a1428;color:#fb7185}
+  .cod.pop{animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes pop{from{transform:scale(.5);opacity:0}}
+  @media(max-width:520px){.item{grid-template-columns:1fr auto}.item .cod{grid-column:1;justify-self:start}}
+
+  /* Toasts */
+  .toasts{position:fixed;right:20px;bottom:20px;z-index:50;display:flex;flex-direction:column;gap:10px;width:min(360px,calc(100% - 24px))}
+  .toast{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;padding:14px 16px 16px;background:var(--blanco);border:1px solid var(--borde);border-radius:18px;box-shadow:0 4px 8px rgba(29,10,69,.08),0 24px 48px -10px rgba(29,10,69,.35);font-weight:600;font-size:.9rem;animation:tin .5s cubic-bezier(.2,1.1,.3,1) both}
+  .toast::before{content:"✓";flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#e3f7ee;color:#0b8f5c;font-weight:800}
+  .toast.error::before{content:"!";background:#ffe8eb;color:#c4213a}
+  .toast::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:100%;transform-origin:left;background:#0b8f5c;animation:tiempo 3.5s linear forwards}
+  .toast.error::after{background:#c4213a}
+  .toast.sale{opacity:0;transform:translateX(30px);transition:.3s}
+  @keyframes tin{from{opacity:0;transform:translateX(40px) scale(.94)}}
+  @keyframes tiempo{to{transform:scaleX(0)}}
+
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="marca"><i>🐾</i> Veterinaria API</div>
+  <a href="/swagger">Swagger →</a>
+  <button class="icono" id="tema" type="button" aria-label="Cambiar tema claro/oscuro" title="Cambiar tema">🌙</button>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Acceso por roles con JWT</h1>
+    <p>Inicia sesión con un rol y comprueba en vivo qué endpoints responden 200, 401 o 403.</p>
+    <div class="chips"><span>Cliente</span><span>Recepcionista</span><span>Veterinario</span><span>JWT · BCrypt</span></div>
+  </section>
+
+  <div class="rejilla">
+    <section>
+      <div class="panel">
+        <h2>Entrar como</h2>
+        <div class="seg" id="seg" role="group" aria-label="Usuarios de prueba">
+          <span class="pastilla" id="pastilla" style="transform:translateX(100%)"></span>
+          <button type="button" data-u="cliente@vet.com" aria-pressed="false">Cliente</button>
+          <button type="button" data-u="recepcion@vet.com" aria-pressed="true">Recepción</button>
+          <button type="button" data-u="veterinario@vet.com" aria-pressed="false">Veterinario</button>
+        </div>
+        <form id="fLogin">
+          <label for="correo">Correo</label>
+          <input id="correo" type="email" autocomplete="username" required value="recepcion@vet.com">
+          <label for="clave">Clave</label>
+          <input id="clave" type="password" autocomplete="current-password" required value="Clave123*">
+          <div class="fila">
+            <button class="btn btn--primario" type="submit">Entrar</button>
+            <button class="btn btn--suave" type="button" id="btnReg">Registrarme</button>
+            <button class="btn btn--suave" type="button" id="btnSalir">Salir</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Sesión</h2>
+        <div class="yo anon" id="yo"><div class="avatar" id="avatar">?</div><div><b id="quien">Anónimo</b><span class="rol" id="rol">sin token</span></div></div>
+        <pre id="claims" hidden></pre>
+        <div class="exp" id="exp"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="panel">
+        <h2>Matriz de permisos en vivo</h2>
+        <p class="nota">Cada botón llama al endpoint con el token actual y muestra el código HTTP real. Cambia de rol y compara.</p>
+        <div id="matriz"></div>
+        <pre id="resp" hidden></pre>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let token = sessionStorage.getItem('token') || '';
+
+/* ---------- Tema claro/oscuro ---------- */
+const raiz = document.documentElement;
+function aplicarTema(t){ raiz.dataset.tema = t; $('tema').textContent = t==='oscuro' ? '☀️' : '🌙'; try{localStorage.setItem('tema',t)}catch{} }
+let t0; try{ t0 = localStorage.getItem('tema'); }catch{}
+aplicarTema(t0 || (matchMedia('(prefers-color-scheme:dark)').matches ? 'oscuro' : 'claro'));
+$('tema').addEventListener('click',()=>aplicarTema(raiz.dataset.tema==='oscuro'?'claro':'oscuro'));
+
+/* ---------- Toasts ---------- */
+function toast(texto, error){
+  const t = document.createElement('div'); t.className='toast'+(error?' error':''); t.textContent=texto;
+  $('toasts').append(t);
+  setTimeout(()=>{ t.classList.add('sale'); setTimeout(()=>t.remove(),300); },3500);
+}
+
+/* ---------- Ripple en botones ---------- */
+document.addEventListener('pointerdown',e=>{
+  const b = e.target.closest('.btn'); if(!b) return;
+  const r=b.getBoundingClientRect(), d=Math.max(r.width,r.height), o=document.createElement('span');
+  o.className='onda'; o.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;
+  b.append(o); setTimeout(()=>o.remove(),600);
+});
+
+/* ---------- Matriz ---------- */
+const grupos = [
+  ['Público',[['GET','/api/mascotas','Sin token']]],
+  ['Solo autenticado',[
+    ['GET','/api/mascotas/1','Cualquier rol'],
+    ['GET','/api/citas','Cualquier rol'],
+    ['GET','/api/auth/perfil','Cualquier rol']]],
+  ['Por rol',[
+    ['POST','/api/mascotas','Recepcionista',()=>({nombre:'Mascota '+Date.now().toString().slice(-5),especie:'Perro',nombreDueno:'Dueño de Prueba'})],
+    ['POST','/api/citas','Recepcionista',()=>({mascotaId:1,fechaHora:`2035-0${1+Math.floor(Math.random()*8)}-1${Math.floor(Math.random()*9)}T1${Math.floor(Math.random()*9)}:00:00`,motivo:'Control',costo:30})],
+    ['PUT','/api/citas/3','Recepcionista o Veterinario',()=>({fechaHora:'2030-05-20T11:00:00',motivo:'Desparasitación',costo:35,estado:'Pendiente'})],
+    ['DELETE','/api/mascotas/999','Veterinario'],
+    ['DELETE','/api/citas/999','Veterinario']]],
+];
+const pruebas=[]; let html='';
+for(const [g,items] of grupos){
+  html+=`<div class="grupo">${g}</div>`;
+  for(const p of items){ const i=pruebas.push(p)-1;
+    html+=`<div class="item"><div><span class="ruta"><span class="metodo m-${p[0]}">${p[0]}</span>${p[1]}</span><span class="acceso">${p[2]}</span></div><span class="cod" id="c${i}">–</span><button class="btn btn--suave btn--chico" data-i="${i}">Probar</button></div>`; }
+}
+$('matriz').innerHTML=html;
+
+function decodificar(t){ try{ const b=t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'); return JSON.parse(decodeURIComponent(escape(atob(b)))); }catch{ return null; } }
+function pintarSesion(){
+  const c = token && decodificar(token);
+  $('yo').classList.toggle('anon',!c);
+  $('avatar').textContent = c ? c.email[0].toUpperCase() : '?';
+  $('quien').textContent = c ? c.email : 'Anónimo';
+  $('rol').textContent = c ? c.role : 'sin token';
+  $('claims').hidden=!c; $('claims').textContent = c ? JSON.stringify(c,null,2) : '';
+  $('exp').textContent = c ? 'Expira: '+new Date(c.exp*1000).toLocaleString() : '';
+}
+async function api(metodo, ruta, cuerpo){
+  const h={}; if(token) h.Authorization='Bearer '+token; if(cuerpo) h['Content-Type']='application/json';
+  const r=await fetch(ruta,{method:metodo,headers:h,body:cuerpo?JSON.stringify(cuerpo):undefined});
+  const txt=await r.text(); let data; try{data=JSON.parse(txt)}catch{data=txt}
+  return {status:r.status,data};
+}
+function marcarRol(u){
+  const bs=[...$('seg').querySelectorAll('button')]; let k=-1;
+  bs.forEach((b,i)=>{ const on=b.dataset.u===u; b.setAttribute('aria-pressed',on); if(on)k=i; });
+  if(k>=0) $('pastilla').style.transform=`translateX(${k*100}%)`;
+}
+async function cargando(btn,fn){ btn.disabled=true; try{ await fn(); } finally{ btn.disabled=false; } }
+
+$('fLogin').addEventListener('submit', e=>{
+  e.preventDefault();
+  cargando(e.submitter||$('fLogin').querySelector('button'), async()=>{
+    const r=await api('POST','/api/auth/login',{correo:$('correo').value,clave:$('clave').value});
+    if(r.status===200){ token=r.data.token; sessionStorage.setItem('token',token); toast('Sesión iniciada (200)'); }
+    else toast(r.status===401?'Credenciales inválidas (401)':'Error '+r.status,true);
+    pintarSesion();
+  });
+});
+$('btnReg').addEventListener('click',e=>cargando(e.currentTarget, async()=>{
+  const r=await api('POST','/api/auth/registro',{correo:$('correo').value,clave:$('clave').value});
+  if(r.status===201) toast('Registrado como '+r.data.rol+' (201). Ahora pulsa Entrar.');
+  else if(r.status===409) toast('Ese correo ya existe (409)',true);
+  else toast('Datos inválidos (400): correo válido y clave de 8+ caracteres',true);
+}));
+$('btnSalir').addEventListener('click',()=>{ token=''; sessionStorage.removeItem('token'); pintarSesion(); toast('Sesión cerrada'); });
+$('seg').addEventListener('click',e=>{
+  const u=e.target.dataset.u; if(!u) return;
+  $('correo').value=u; $('clave').value='Clave123*'; marcarRol(u); $('fLogin').requestSubmit();
+});
+$('matriz').addEventListener('click',async e=>{
+  const b=e.target.closest('button[data-i]'); if(!b) return;
+  const i=b.dataset.i, [m,ruta,,cuerpo]=pruebas[i];
+  await cargando(b, async()=>{
+    const r=await api(m,ruta,cuerpo&&cuerpo());
+    const c=$('c'+i); c.textContent=r.status; c.className='cod pop s'+String(r.status)[0];
+    $('resp').hidden=false; $('resp').textContent=`${m} ${ruta} → ${r.status}\n`+(typeof r.data==='string'?r.data:JSON.stringify(r.data,null,2)).slice(0,1500);
+  });
+});
+pintarSesion();
+</script>
+</body>
+</html>

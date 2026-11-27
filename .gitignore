@@ -1,0 +1,27 @@
+## .NET / Visual Studio
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.rsuser
+*.log
+TestResults/
+*.nupkg
+publish/
+
+## Secretos y configuracion local
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+*.pfx
+.env
+
+## Sistema operativo
+Thumbs.db
+.DS_Store

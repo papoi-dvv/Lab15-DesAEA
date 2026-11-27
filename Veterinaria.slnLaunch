@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "Gateway y microservicios",
+    "Projects": [
+      { "Path": "Veterinaria.Api\\Veterinaria.Api.csproj", "Action": "Start", "DebugTarget": "http" },
+      { "Path": "Propietarios.Api\\Propietarios.Api.csproj", "Action": "Start", "DebugTarget": "http" },
+      { "Path": "GatewayApi\\GatewayApi.csproj", "Action": "Start", "DebugTarget": "http" }
+    ]
+  }
+]

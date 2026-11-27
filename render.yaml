@@ -1,0 +1,47 @@
+# Blueprint de Render (New > Blueprint). Crea los tres servicios en plan gratuito.
+# Los secretos no están en el repositorio: la clave JWT la genera Render y la cadena de conexión se pega en el panel.
+envVarGroups:
+  # La misma clave JWT para el gateway y los dos servicios
+  - name: vetlab15-jwt
+    envVars:
+      - key: Jwt__Key
+        generateValue: true
+
+services:
+  - type: web
+    name: vetlab15-api
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./Veterinaria.Api/Dockerfile
+    dockerContext: .
+    envVars:
+      - fromGroup: vetlab15-jwt
+      - key: Database__Provider
+        value: PostgreSQL
+      - key: ConnectionStrings__VeterinariaDB
+        sync: false # cadena de Neon: Render la pide al crear el Blueprint
+      - key: TZ
+        value: America/Lima # la regla "la cita debe ser futura" usa la hora local
+      - key: ASPNETCORE_FORWARDEDHEADERS_ENABLED
+        value: "true" # reconoce https detrás del proxy (cabecera Location correcta)
+
+  - type: web
+    name: vetlab15-propietarios
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./Propietarios.Api/Dockerfile
+    dockerContext: .
+    envVars:
+      - fromGroup: vetlab15-jwt
+
+  - type: web
+    name: vetlab15-gateway
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./GatewayApi/Dockerfile
+    dockerContext: .
+    envVars:
+      - fromGroup: vetlab15-jwt

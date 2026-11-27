@@ -1,0 +1,126 @@
+# Pruebas del laboratorio S15: todo pasa por el gateway (REST Client en VS Code o Visual Studio).
+# En la nube cambie las dos variables por las direcciones publicadas y repita.
+@gateway = http://localhost:5000
+@propietarios = http://localhost:5207
+
+### ===== AUTENTICACION (ruta publica) =====
+
+### 200 - Login Cliente
+# @name loginCliente
+POST {{gateway}}/gateway/auth/login
+Content-Type: application/json
+
+{ "correo": "cliente@vet.com", "clave": "Clave123*" }
+
+### 200 - Login Recepcionista
+# @name loginRecep
+POST {{gateway}}/gateway/auth/login
+Content-Type: application/json
+
+{ "correo": "recepcion@vet.com", "clave": "Clave123*" }
+
+### 200 - Login Veterinario
+# @name loginVet
+POST {{gateway}}/gateway/auth/login
+Content-Type: application/json
+
+{ "correo": "veterinario@vet.com", "clave": "Clave123*" }
+
+@tokenCliente = {{loginCliente.response.body.token}}
+@tokenRecep = {{loginRecep.response.body.token}}
+@tokenVet = {{loginVet.response.body.token}}
+
+### 401 - Clave incorrecta
+POST {{gateway}}/gateway/auth/login
+Content-Type: application/json
+
+{ "correo": "cliente@vet.com", "clave": "incorrecta" }
+
+### 201 - Registro (cambie el correo si ya existe)
+POST {{gateway}}/gateway/auth/registro
+Content-Type: application/json
+
+{ "correo": "dueno15@vet.com", "clave": "Clave123*" }
+
+### 200 - Perfil
+GET {{gateway}}/gateway/auth/perfil
+Authorization: Bearer {{tokenVet}}
+
+### ===== LECTURA DE LA API (ruta publica en el gateway) =====
+
+### 200 - Lista publica
+GET {{gateway}}/gateway/mascotas
+
+### 401 - Detalle sin token (lo rechaza la API)
+GET {{gateway}}/gateway/mascotas/1
+
+### 200 - Detalle con token
+GET {{gateway}}/gateway/mascotas/1
+Authorization: Bearer {{tokenCliente}}
+
+### 404 - Mascota inexistente
+GET {{gateway}}/gateway/mascotas/999
+Authorization: Bearer {{tokenCliente}}
+
+### 200 - Citas pendientes
+GET {{gateway}}/gateway/citas?estado=Pendiente
+Authorization: Bearer {{tokenCliente}}
+
+### ===== ESCRITURA (el gateway exige token; la API exige el rol) =====
+
+### 401 - Sin token (lo rechaza el gateway)
+POST {{gateway}}/gateway/mascotas
+Content-Type: application/json
+
+{ "nombre": "Toby", "especie": "Perro", "nombreDueno": "Pedro Gil" }
+
+### 403 - Cliente no puede crear
+POST {{gateway}}/gateway/mascotas
+Content-Type: application/json
+Authorization: Bearer {{tokenCliente}}
+
+{ "nombre": "Toby", "especie": "Perro", "nombreDueno": "Pedro Gil" }
+
+### 201 - Recepcionista crea (copie el id devuelto en @mascotaId)
+POST {{gateway}}/gateway/mascotas
+Content-Type: application/json
+Authorization: Bearer {{tokenRecep}}
+
+{ "nombre": "Toby", "especie": "Perro", "raza": "Beagle", "nombreDueno": "Pedro Gil" }
+
+@mascotaId = 6
+
+### 204 - Actualizar
+PUT {{gateway}}/gateway/mascotas/{{mascotaId}}
+Content-Type: application/json
+Authorization: Bearer {{tokenRecep}}
+
+{ "nombre": "Toby", "especie": "Perro", "raza": "Labrador", "nombreDueno": "Pedro Gil", "activo": true }
+
+### 403 - Recepcionista no elimina
+DELETE {{gateway}}/gateway/mascotas/{{mascotaId}}
+Authorization: Bearer {{tokenRecep}}
+
+### 204 - Veterinario elimina
+DELETE {{gateway}}/gateway/mascotas/{{mascotaId}}
+Authorization: Bearer {{tokenVet}}
+
+### ===== MICROSERVICIO DE PROPIETARIOS (exige token) =====
+
+### 401 - Sin token (gateway)
+GET {{gateway}}/gateway/propietarios
+
+### 200 - Lista (con el microservicio 2 detenido responde 502)
+GET {{gateway}}/gateway/propietarios
+Authorization: Bearer {{tokenCliente}}
+
+### 200 - Por id
+GET {{gateway}}/gateway/propietarios/1
+Authorization: Bearer {{tokenCliente}}
+
+### 404 - Inexistente
+GET {{gateway}}/gateway/propietarios/999
+Authorization: Bearer {{tokenCliente}}
+
+### 401 - Llamada DIRECTA al microservicio 2 sin token
+GET {{propietarios}}/api/propietarios
