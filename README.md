@@ -87,5 +87,8 @@ Usuarios de prueba (clave `Clave123*`): `cliente@vet.com`, `recepcion@vet.com`, 
 | `render.yaml`, `*/Dockerfile`, `.dockerignore` | Despliegue en la nube |
 | `DESPLIEGUE.md` | Elección de proveedores y pasos para publicar |
 
+## Profesor
+Arévalo Sermeño, Edwin William
+
 ## Autor
-Arévalo Sermeño, Edwin William – Sección C, Tecsup.
+Santos Zuasnabar, Paulo Nicolas – Sección D, Tecsup.
